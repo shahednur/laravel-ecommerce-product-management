@@ -57,7 +57,7 @@ This project demonstrates product & category management with **CRUD operations**
 
 ## 📂 Project Structure
 ```bash
-    laravel-ecommerce-product-management/
+laravel-ecommerce-product-management/
 ├── app/
 │   ├── Models/        # Eloquent models (Product, Category)
 │   ├── Http/          # Controllers, Requests
