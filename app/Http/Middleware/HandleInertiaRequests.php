@@ -2,7 +2,6 @@
 
 namespace App\Http\Middleware;
 
-use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -36,15 +35,28 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
-
-        return [
-            ...parent::share($request),
-            'name' => config('app.name'),
-            'quote' => ['message' => trim($message), 'author' => trim($author)],
+        return array_merge(parent::share($request), [
             'auth' => [
                 'user' => $request->user(),
             ],
-        ];
+            'ziggy' => function () use ($request) {
+                // Check if Ziggy class exists before using it
+                if (class_exists(\Tightenco\Ziggy\Ziggy::class)) {
+                    return array_merge((new \Tightenco\Ziggy\Ziggy)->toArray(), [
+                        'location' => $request->url(),
+                    ]);
+                }
+                
+                // Fallback if Ziggy is not available
+                return [
+                    'location' => $request->url(),
+                    'routes' => [],
+                ];
+            },
+            'flash' => [
+                'message' => fn () => $request->session()->get('message'),
+                'error' => fn () => $request->session()->get('error'),
+            ],
+        ]);
     }
 }
