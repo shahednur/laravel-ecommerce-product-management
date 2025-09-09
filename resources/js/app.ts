@@ -4,7 +4,7 @@ import { createApp, h } from 'vue';
 import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import type { DefineComponent } from 'vue';
-import { route as ziggyRoute } from 'ziggy-js';
+import { route } from 'ziggy-js';
 import { Ziggy } from './ziggy';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
@@ -20,9 +20,8 @@ createInertiaApp({
         const app = createApp({ render: () => h(App, props) });
 
         // ✅ Global $route function
-        app.config.globalProperties.$route = (name: string, params?: Record<string, any>, absolute?: boolean) => {
-            return ziggyRoute(name, params, absolute, Ziggy);
-        };
+        // In your app.js/app.ts
+        app.config.globalProperties.$route = route
 
         app.use(plugin).mount(el);
     },

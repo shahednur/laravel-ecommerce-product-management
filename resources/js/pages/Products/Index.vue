@@ -2,6 +2,8 @@
 import { ref, computed } from 'vue'
 import type { Product } from '../../types'
 import { Link } from '@inertiajs/vue3'
+import { route } from 'ziggy-js'
+
 // Props
 const props = defineProps<{
   products: Array<Product>
@@ -30,7 +32,7 @@ const prevPage = () => {
   if (currentPage.value > 1) currentPage.value--
 }
 
-// Action Handlers
+// Action Handlers - now using proper route() calls
 const viewProduct = (id: number) => {
   console.log('View', id)
 }
@@ -44,11 +46,6 @@ const deleteProduct = (id: number) => {
     console.log('Delete', id)
   }
 }
-
-const createProduct = () => {
-  window.location.href = '/products'
-}
-
 </script>
 
 <template>
@@ -57,11 +54,11 @@ const createProduct = () => {
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-2xl font-bold">Products Dashboard</h1>
       <Link
-      :href="route('products.create')"
-      class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow"
-    >
-      Create Product
-    </Link>
+        :href="route('products.create')"
+        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow"
+      >
+        Create Product
+      </Link>
     </div>
 
     <!-- Table -->
@@ -99,24 +96,27 @@ const createProduct = () => {
               </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-center space-x-2">
-              <button
-                @click="viewProduct(product.id)"
-                class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-2 py-1 rounded text-sm"
+              <Link
+                :href="`/products/${product.id}`"
+                class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-2 py-1 rounded text-sm inline-block"
               >
                 View
-              </button>
-              <button
-                @click="editProduct(product.id)"
-                class="bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded text-sm"
+              </Link>
+              <Link
+                :href="`/products/${product.id}/edit`"
+                class="bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded text-sm inline-block"
               >
                 Edit
-              </button>
-              <button
-                @click="deleteProduct(product.id)"
+              </Link>
+              <Link
+                :href="`/products/${product.id}`"
+                method="delete"
+                as="button"
                 class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-sm"
+                @click="(e) => !confirm('Are you sure you want to delete this product?') && e.preventDefault()"
               >
                 Delete
-              </button>
+              </Link>
             </td>
           </tr>
           <tr v-if="paginatedProducts.length === 0">

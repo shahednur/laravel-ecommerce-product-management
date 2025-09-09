@@ -58,6 +58,13 @@ class ProductController extends Controller
         return response()->json($product->load('categories'));
     }
 
+    public function edit(Product $product)
+    {
+        return Inertia::render('Products/Edit', [
+            'product' => $product
+        ]);
+    }
+
     // Update product
     public function update(Request $request, Product $product)
     {
