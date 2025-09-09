@@ -6,6 +6,9 @@ use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+
 
 class ProductController extends Controller
 {
@@ -55,28 +58,66 @@ class ProductController extends Controller
     // Show single product
     public function show(Product $product)
     {
-        return response()->json($product->load('categories'));
+        // Load relationships if needed
+        $product->load(['categories']);
+        
+        return Inertia::render('Products/Show', [
+            'product' => $product
+        ]);
     }
 
     public function edit(Product $product)
     {
         return Inertia::render('Products/Edit', [
-            'product' => $product
+            'product' => $product,
+            'categories' => Category::all(['id', 'name']),
         ]);
     }
 
     // Update product
-    public function update(Request $request, Product $product)
+     public function update(Request $request, Product $product)
     {
         $validated = $request->validate([
-            'name' => 'sometimes|string|max:255',
-            'price' => 'sometimes|numeric',
-            'description' => 'nullable|string',
+            'name' => ['required', 'string', 'max:255'],
+            'sku' => ['nullable', 'string', 'max:50', Rule::unique('products')->ignore($product->id)],
+            'price' => ['required', 'numeric', 'min:0'],
+            'stock' => ['required', 'integer', 'min:0'],
+            'description' => ['nullable', 'string'],
+            'active' => ['boolean'],
+            'categories' => ['array'],
+            'categories.*' => ['exists:categories,id'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
         ]);
 
+        // Handle image upload if provided
+        if ($request->hasFile('image')) {
+            // Delete old image if exists
+            if ($product->image && file_exists(public_path($product->image))) {
+                unlink(public_path($product->image));
+            }
+            
+            $image = $request->file('image');
+            $imageName = time() . '_' . Str::random(10) . '.' . $image->extension();
+            $image->move(public_path('images/products'), $imageName);
+            $validated['image'] = '/images/products/' . $imageName;
+        }
+
+        // Generate slug if name changed
+        if ($product->name !== $validated['name']) {
+            $validated['slug'] = Str::slug($validated['name']) . '-' . Str::random(5);
+        }
+
+        // Update product
         $product->update($validated);
 
-        return response()->json($product);
+        // Sync categories
+        if (isset($validated['categories'])) {
+            $product->categories()->sync($validated['categories']);
+        }
+
+        return redirect()
+            ->route('products.show', $product)
+            ->with('success', 'Product updated successfully!');
     }
 
     // Delete product

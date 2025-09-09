@@ -8,6 +8,7 @@ use Inertia\Inertia;
 
 // Web routes for Inertia pages
 Route::resource('products', ProductController::class);
+// Route::get('/products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
 // Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
 // Route::post('/products', [ProductController::class, 'store'])->name('products.store');
 
